@@ -1,0 +1,365 @@
+proxies:
+proxy-providers:
+  ID:
+    type: file
+    path: "./akun-id.yaml"
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 99
+  SG:
+    type: file
+    path: "./akun-sg.yaml"
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 99
+  GAME:
+    type: file
+    path: "./akun-game.yaml"
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 99
+proxy-groups:
+- name: Tunnel
+  type: select
+  disable-udp: false
+  proxies:
+  - LoadBalance
+  - Manual
+- name: Server-ID
+  type: load-balance
+  strategy: round-robin
+  disable-udp: false
+  use:
+  - ID
+  url: http://www.gstatic.com/generate_204
+  interval: 99
+- name: Server-SG
+  type: load-balance
+  strategy: round-robin
+  disable-udp: false
+  use:
+  - SG
+  url: http://www.gstatic.com/generate_204
+  interval: 99
+- name: LoadBalance
+  type: load-balance
+  strategy: round-robin
+  disable-udp: false
+  use:
+  - ID
+  - SG
+  url: http://www.gstatic.com/generate_204
+  interval: 99
+- name: Manual
+  type: select
+  disable-udp: false
+  use:
+  - ID
+  - SG
+- name: Port Game TCP
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  use:
+  - GAME
+- name: Port Game UDP
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  use:
+  - GAME
+- name: Games
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  use:
+  - GAME
+- name: Aplikasi Provider
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  - Server-ID
+  use:
+  - ID
+- name: Web-Download
+  type: select
+  disable-udp: false
+  proxies:
+  - Server-ID
+  - Server-SG
+  - LoadBalance
+  use:
+  - ID
+  - SG
+- name: E-Banking
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  use:
+  - ID
+  - SG
+- name: Online Shop
+  type: load-balance
+  strategy: round-robin
+  disable-udp: false
+  use:
+  - ID
+  - SG
+  url: http://www.gstatic.com/generate_204
+  interval: 99
+- name: Whatsapp
+  type: select
+  disable-udp: false
+  proxies:
+  - DIRECT
+  - LoadBalance
+  use:
+  - ID
+  - SG
+- name: Sosmed
+  type: select
+  disable-udp: false
+  proxies:
+  - Server-ID
+  - Server-SG
+  - LoadBalance
+  use:
+  - ID
+  - SG
+- name: SpeedTest
+  type: select
+  disable-udp: false
+  use:
+  - ID
+  - SG
+- name: PlayStore
+  type: select
+  disable-udp: false
+  use:
+  - ID
+  - SG
+- name: Youtube
+  type: select
+  disable-udp: false
+  proxies:
+  - Server-ID
+  - Server-SG
+  - LoadBalance
+  use:
+  - ID
+  - SG
+- name: Indo Only
+  type: select
+  disable-udp: false
+  proxies:
+  - Server-ID
+  use:
+  - ID
+- name: Streaming
+  type: select
+  disable-udp: false
+  proxies:
+  - Server-ID
+  - Server-SG
+  - LoadBalance
+- name: AdBlock Plus - OISD
+  type: select
+  disable-udp: false
+  proxies:
+  - REJECT
+  - Tunnel
+- name: AdBlock Plus - 21+
+  type: select
+  disable-udp: false
+  proxies:
+  - REJECT
+  - Tunnel
+rule-providers:
+  Portgame-TCP:
+    type: file
+    behavior: classical
+    path: ./portgametcp.yaml
+  Portgame-UDP:
+    type: file
+    behavior: classical
+    path: ./portgameudp.yaml
+  Games:
+    type: file
+    behavior: classical
+    path: ./games.yaml
+  Id.only:
+    type: file
+    behavior: domain
+    path: ./idonly.yaml
+  key-id:
+    type: file
+    behavior: classical
+    path: ./key-id.yaml
+  Web-download:
+    type: file
+    behavior: classical
+    path: ./webdownload.yaml
+  Oisd-Full:
+    type: file
+    behavior: domain
+    path: ./oisd-full.yaml
+  Oisd-Nsfw:
+    type: file
+    behavior: domain
+    path: ./oisd-nsfw.yaml
+rules:
+- IP-CIDR,198.18.0.1/16,REJECT,no-resolve
+# Google Talk
+- DST-PORT,5228,Tunnel
+# QUIC
+- AND,((NETWORK,udp),(OR,((DST-PORT,443),(GEOSITE,youtube)))),REJECT
+# Bypass Adblock
+- DOMAIN-KEYWORD,googlesyndication,Tunnel
+#  Aplikasi Provider
+- DOMAIN-KEYWORD,xlaxiata,Aplikasi Provider
+- DOMAIN-KEYWORD,myxl,Aplikasi Provider
+- DOMAIN-KEYWORD,liveon.id,Aplikasi Provider
+- DOMAIN-KEYWORD,telkomsel,Aplikasi Provider
+- DOMAIN-KEYWORD,indosatooredoo,Aplikasi Provider
+- DOMAIN-KEYWORD,axisnet,Aplikasi Provider
+- DOMAIN-KEYWORD,tri.co.id,Aplikasi Provider
+- DOMAIN-KEYWORD,byu,Aplikasi Provider
+- DOMAIN-KEYWORD,smartfren,Aplikasi Provider
+# Whatsapp
+- PROCESS-NAME,com.whatsapp,Whatsapp
+- DST-PORT,3478,Whatsapp
+- DOMAIN-KEYWORD,whatsapp,Whatsapp
+- DOMAIN-KEYWORD,wa.me,Whatsapp
+- IP-CIDR,66.111.48.0/22,Whatsapp
+- IP-CIDR6,2620:13e:1000::/44,Whatsapp
+# Online Shop
+- DOMAIN-KEYWORD,shopee,Online Shop
+- DOMAIN-KEYWORD,shp.ee,Online Shop
+- DOMAIN-KEYWORD,tokopedia,Online Shop
+- DOMAIN-KEYWORD,lazada,Online Shop
+- DOMAIN-KEYWORD,blibli,Online Shop
+- DOMAIN-KEYWORD,bukalapak,Online Shop
+- DOMAIN-KEYWORD,orami,Online Shop
+- DOMAIN-KEYWORD,zalora,Online Shop
+- DOMAIN-KEYWORD,jd.id,Online Shop
+- DOMAIN-KEYWORD,ralali,Online Shop
+- DOMAIN-KEYWORD,matahari,Online Shop
+- DOMAIN-KEYWORD,bhinneka,Online Shop
+- DOMAIN-KEYWORD,sociolla,Online Shop
+- DOMAIN-KEYWORD,jakmal,Online Shop
+- DOMAIN-KEYWORD,jakartanotebook,Online Shop
+- DOMAIN-KEYWORD,alibaba,Online Shop
+- DOMAIN-KEYWORD,ali,Online Shop
+- DOMAIN-KEYWORD,amazon,Online Shop
+- DOMAIN-KEYWORD,ebay,Online Shop
+- DOMAIN-KEYWORD,shopify,Online Shop
+# Banking
+- PROCESS-NAME,id.co.bri.brimo,E-Banking
+- PROCESS-NAME,com.btn,E-Banking
+- PROCESS-NAME,id.co.bankbkemobile.digitalbank,E-Banking
+- DOMAIN-KEYWORD,bi.go.id,E-Banking
+- DOMAIN-KEYWORD,dana,E-Banking
+- DOMAIN-KEYWORD,ovo,E-Banking
+- DOMAIN-KEYWORD,linkaja,E-Banking
+- DOMAIN-KEYWORD,dbs,E-Banking
+- DOMAIN-KEYWORD,bri,E-Banking
+- DOMAIN-KEYWORD,bni,E-Banking
+- DOMAIN-KEYWORD,btn,E-Banking
+- DOMAIN-KEYWORD,seabank,E-Banking
+- DOMAIN-KEYWORD,gopay,E-Banking
+- DOMAIN-KEYWORD,indomaretpointku,E-Banking
+- DOMAIN-KEYWORD,alfagift,E-Banking
+- DOMAIN-KEYWORD,pegadaian,E-Banking
+- DOMAIN-KEYWORD,lakuemas,E-Banking
+- DOMAIN-KEYWORD,bca,E-Banking
+- DOMAIN-KEYWORD,mandiri,E-Banking
+- DOMAIN-KEYWORD,cimbniaga,E-Banking
+- DOMAIN-KEYWORD,bank,E-Banking
+- DOMAIN-KEYWORD,jenius,E-Banking
+- DOMAIN-KEYWORD,tmwrbyuob,E-Banking
+- DOMAIN-KEYWORD,paypal,E-Banking
+- DOMAIN-KEYWORD,i-saku,E-Banking
+- DOMAIN-KEYWORD,bareksa,E-Banking
+- DOMAIN-KEYWORD,jago.com,E-Banking
+# Sosmed
+- PROCESS-NAME,com.facebook.katana,Sosmed
+- PROCESS-NAME,com.facebook.katana.LoginActivity,Sosmed
+- PROCESS-NAME,com.instagram.android,Sosmed
+- PROCESS-NAME,com.instagram.android.activity.MainTabActivity,Sosmed
+- PROCESS-NAME,com.facebook.orca,Sosmed
+- PROCESS-NAME,com.facebook.orca.auth.StartScreenActivity,Sosmed
+- DOMAIN-KEYWORD,fb.me,Sosmed
+- DOMAIN-KEYWORD,facebook,Sosmed
+- DOMAIN-KEYWORD,instagram,Sosmed
+- DOMAIN-KEYWORD,messenger,Sosmed
+- DOMAIN-KEYWORD,ig.me,Sosmed
+- DOMAIN-KEYWORD,twitter,Sosmed
+- DOMAIN-KEYWORD,tiktok,Sosmed
+- DOMAIN-KEYWORD,path,Sosmed
+- DOMAIN-KEYWORD,discus,Sosmed
+- DOMAIN-KEYWORD,line,Sosmed
+- DOMAIN-KEYWORD,snapchat,Sosmed
+- DOMAIN-KEYWORD,wechat,Sosmed
+- DOMAIN-KEYWORD,kuaishou,Sosmed
+- DOMAIN-KEYWORD,weibo,Sosmed
+- DOMAIN-KEYWORD,qq,Sosmed
+- DOMAIN-KEYWORD,douyin,Sosmed
+- DOMAIN-KEYWORD,airindo,Sosmed
+# Streaming
+- DOMAIN-KEYWORD,scdn.co,Streaming
+- DOMAIN-KEYWORD,discord,Streaming
+- DOMAIN-KEYWORD,airhorn.solutions,Streaming
+- DOMAIN-KEYWORD,airhornbot,Streaming
+- DOMAIN-KEYWORD,dis.gd,Streaming
+- DOMAIN-KEYWORD,bigbeans.solustuions,Streaming
+- DOMAIN-KEYWORD,hammerandchisel.ssl.zendesk.com,Streaming
+- DOMAIN-KEYWORD,watchanimeattheoffice.com,Streaming
+- DOMAIN-KEYWORD,movi,Streaming
+- DOMAIN-KEYWORD,spotify,Streaming
+- DOMAIN-KEYWORD,joox,Streaming
+- DOMAIN-KEYWORD,hbo,Streaming
+- DOMAIN-KEYWORD,restream,Streaming
+- DOMAIN-KEYWORD,streamlabs,Streaming
+- DOMAIN-KEYWORD,twitch,Streaming
+- DOMAIN-KEYWORD,obsproject,Streaming
+# Youtube
+- PROCESS-NAME,com.google.android.youtube,Youtube
+- PROCESS-NAME,com.google.android.youtube.app.honeycomb.Shell$HomeActivity,Youtube
+- GEOSITE,youtube,Youtube
+# Telegram
+- PROCESS-NAME,org.telegram.messenger,Sosmed
+- PROCESS-NAME,org.telegram.messenger.DefaultIcon,Sosmed
+- GEOSITE,telegram,Sosmed
+- GEOIP,telegram,Sosmed
+# PlayStore
+- DOMAIN-KEYWORD,googleapis,PlayStore
+- DOMAIN-KEYWORD,play.google,PlayStore
+- DOMAIN-KEYWORD,gvt1,PlayStore
+# SpeedTest
+- DOMAIN-KEYWORD,cdnst,SpeedTest
+- DOMAIN-KEYWORD,cellmaps,SpeedTest
+- DOMAIN-KEYWORD,speedtest,SpeedTest
+- DOMAIN-KEYWORD,ookla,SpeedTest
+- DOMAIN-KEYWORD,pingtest,SpeedTest
+- DOMAIN-KEYWORD,cachefly,SpeedTest
+- DOMAIN-KEYWORD,fast.com,SpeedTest
+- DOMAIN-KEYWORD,nperf,SpeedTest
+# RuleSet
+- RULE-SET,Portgame-TCP,Port Game TCP,tcp
+- RULE-SET,Portgame-UDP,Port Game UDP,udp
+- RULE-SET,Games,Games
+- RULE-SET,Id.only,Indo Only
+- RULE-SET,key-id,Indo Only
+- RULE-SET,Web-download,Web-Download
+- RULE-SET,Oisd-Full,AdBlock Plus - OISD
+- RULE-SET,Oisd-Nsfw,AdBlock Plus - 21+
+- GEOIP,ID,Indo Only
+- MATCH,Tunnel

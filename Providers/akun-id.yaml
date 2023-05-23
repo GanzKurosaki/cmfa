@@ -1,0 +1,25 @@
+proxies:
+- name: Trojan GFW (SNI)
+  type: trojan
+  server: SERVER.COM
+  port: 443
+  password: PASSWORD
+  udp: true
+  sni: BUGSNI.COM
+  skip-cert-verify: true
+- name: Vmess WS (SNI)
+  type: vmess
+  server: SERVER.COM
+  port: 443
+  uuid: UUID
+  alterId: 0
+  cipher: auto
+  udp: true
+  tls: true
+  skip-cert-verify: true
+  servername: BUGSNI.COM
+  network: ws
+  ws-opts:
+    path: /PATH
+    headers:
+      Host: BUGSNI.COM

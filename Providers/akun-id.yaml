@@ -1,25 +1,17 @@
 proxies:
-- name: Trojan GFW (SNI)
-  type: trojan
-  server: SERVER.COM
-  port: 443
-  password: PASSWORD
-  udp: true
-  sni: BUGSNI.COM
-  skip-cert-verify: true
-- name: Vmess WS (SNI)
-  type: vmess
-  server: SERVER.COM
-  port: 443
-  uuid: UUID
-  alterId: 0
-  cipher: auto
-  udp: true
-  tls: true
-  skip-cert-verify: true
-  servername: BUGSNI.COM
-  network: ws
-  ws-opts:
-    path: /PATH
-    headers:
-      Host: BUGSNI.COM
+  - name: estebuhXl
+    server: 104.18.2.198
+    port: 80
+    type: vmess
+    uuid: d94f352c-8088-4c67-a52c-69bfcc0b88d2
+    alterId: 0
+    cipher: auto
+    tls: false
+    skip-cert-verify: true
+    servername: sg-do2.estebuh.my.id
+    network: ws
+    ws-opts:
+      path: /vmess
+      headers:
+        Host: sg-do2.estebuh.my.id
+    udp: true
